@@ -1,0 +1,5 @@
+{
+    "event": "payment_success",
+    "amount": 500000,
+    "customer": "Priya"
+}
