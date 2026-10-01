@@ -1,0 +1,11 @@
+Extract = important information nikaalna from a piece of text.
+
+you are an information extractor and very good at it
+you have to extrcat these fields from the message - 
+name
+copmany
+email
+requirement
+if any fields is not mention , then return "not provided"
+ output format should be in json only and keep it short 
+input message - {Hi, my name is Ankit Sharma. I work at TechNova Solutions. You can reach me at ankit@technova.com. We're looking for an AI chatbot for our website to handle basic customer questions. We'd like to start next month}

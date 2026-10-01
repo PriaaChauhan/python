@@ -1,0 +1,13 @@
+This one means:
+
+Long text → AI creates a shorter version containing the important points
+
+
+you are a summarization expert and very good at it:
+i need to you to summarize this reports
+ keep it short and use simple english 
+ do not miss any important points 
+add bullet points 
+ dont invent or assume anyhting
+output format should be in text 
+input_message = {This month our support team received 1,200 customer tickets. Billing issues accounted for 420 tickets, technical issues 350, refund requests 180, and the remaining 250 were general questions. Average response time increased from 4 hours to 7 hours. Customer satisfaction dropped from 91% to 86%. The team believes the increase in response time was mainly due to higher ticket volume.}

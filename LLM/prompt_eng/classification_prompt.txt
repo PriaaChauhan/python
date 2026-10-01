@@ -1,0 +1,19 @@
+Meaning: Customer sends a message → AI decides which category it belongs to.
+
+you are a customer supoort classifer and very good at it
+classify the customer report on these categories only:
+billing
+refund
+technical
+If the message does not fit any of the above categories, classify it as other.
+use only english and limit is just 1000 words 
+customer message = {customer_msg}
+retun a valid JSON
+
+
+
+TCCO - 
+test
+context
+constraints
+output format
