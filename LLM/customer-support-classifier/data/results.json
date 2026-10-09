@@ -1,0 +1,26 @@
+[
+    {
+        "message": "I was charged twice",
+        "category": "billing"
+    },
+    {
+        "message": "My refund has not arrived",
+        "category": "refund"
+    },
+    {
+        "category": "billing",
+        "message": "i was charged thrice repeatedly."
+    },
+    {
+        "category": "refund",
+        "message": "I need my refund as soon as possible."
+    },
+    {
+        "category": "refund",
+        "message": "i need my money back"
+    },
+    {
+        "category": "other",
+        "message": ""
+    }
+]
