@@ -1,0 +1,483 @@
+{
+  "name": "02 - Customer Support Ticket Routing Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2e989a7a-a611-44f6-8827-8d3e99e9395f",
+              "name": "ticketId",
+              "value": "={{ $json.body.ticketId }}",
+              "type": "string"
+            },
+            {
+              "id": "c5fe5cd9-1740-49a7-9253-01b16a207949",
+              "name": "customerEmail",
+              "value": "={{ $json.body.customerEmail }}",
+              "type": "string"
+            },
+            {
+              "id": "b6b6dbe1-ceed-4c1f-a198-86c6cac16ded",
+              "name": "message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "d4632850-fc20-48de-ba7b-6c3f86b19895",
+              "name": "category",
+              "value": "={{ $json.body.category }}",
+              "type": "string"
+            },
+            {
+              "id": "1ab01b06-7f68-47d0-9cef-6d462c14086e",
+              "name": "priority",
+              "value": "={{ $json.body.priority }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -688,
+        32
+      ],
+      "id": "f11720cf-ff26-490d-915a-e23ad6b333a2",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "support-ticket",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        -896,
+        32
+      ],
+      "id": "eccb1336-f735-48e0-ae24-3b82bd0fc0f1",
+      "name": "Webhook",
+      "webhookId": "40f58a47-a979-4a71-8e9f-42f65f88a9d8"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"ticketId\": \"T-1001\",\n  \"team\": \"billing\",\n  \"priority\": \"high\",\n  \"escalated\": true,\n  \"message\": \"High-priority ticket escalated\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -16,
+        -480
+      ],
+      "id": "bae262a1-a8c5-403d-a765-a90d3ee5887d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "billing",
+                    "rightValue": "={{ $json.category }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "423da6f9-0d90-4e29-849a-6f315018a550"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "687eaa1f-7f02-4368-a5ae-aa3cd5c5e4fb",
+                    "leftValue": "technical",
+                    "rightValue": "={{ $json.category }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "99b6911d-e05b-4c89-95c1-db1c26762aa4",
+                    "leftValue": "account",
+                    "rightValue": "={{ $json.category }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -496,
+        16
+      ],
+      "id": "5841ac38-623b-4bf2-9dee-76c51ece303a",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"ticketId\": \"T-1001\",\n  \"team\": \"technical\",\n  \"priority\": \"high\",\n  \"escalated\": true,\n  \"message\": \"High-priority ticket escalated\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        80,
+        -16
+      ],
+      "id": "1f06e454-b10e-4d65-ae2b-451a8be68059",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"ticketId\": \"T-1001\",\n  \"team\": \"technical\",\n  \"priority\": \"normal\",\n  \"escalated\": false,\n  \"message\": \"Ticket routed successfully\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        96,
+        160
+      ],
+      "id": "d6d32a7a-8d59-406c-a3da-fcf3eb1c8ecc",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "86297055-e371-49fd-8f2e-2b72468a9401",
+              "leftValue": "={{ $('Edit Fields').item.json.priority }}",
+              "rightValue": "=high",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -208,
+        64
+      ],
+      "id": "5ab4fe47-e096-4bd0-91a1-a1a000350daf",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "86297055-e371-49fd-8f2e-2b72468a9401",
+              "leftValue": "={{ $('Edit Fields').item.json.priority }}",
+              "rightValue": "=high",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -208,
+        -288
+      ],
+      "id": "d8cf3b2f-aa36-431c-a6d1-2ebe9ffa84b9",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "86297055-e371-49fd-8f2e-2b72468a9401",
+              "leftValue": "={{ $('Edit Fields').item.json.priority }}",
+              "rightValue": "=high",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -192,
+        576
+      ],
+      "id": "98db689c-c2ef-4014-87f7-9bdcc0872442",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"ticketId\": \"T-1001\",\n  \"team\": \"billing\",\n  \"priority\": \"normal\",\n  \"escalated\": false,\n  \"message\": \"Ticket routed successfully\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        32,
+        -272
+      ],
+      "id": "c9ee363a-3656-4334-b6cc-b1e472fb31c6",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"ticketId\": \"T-1001\",\n  \"team\": \"account\",\n  \"priority\": \"high\",\n  \"escalated\": true,\n  \"message\": \"High-priority ticket escalated\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        96,
+        416
+      ],
+      "id": "487fb52d-12a2-4ba8-860d-619a0ac675ff",
+      "name": "Respond to Webhook4"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"ticketId\": \"T-1001\",\n  \"team\": \"account\",\n  \"priority\": \"normal\",\n  \"escalated\": false,\n  \"message\": \"Ticket routed successfully\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        112,
+        656
+      ],
+      "id": "bd9d59da-5af1-4655-9fbf-b0dab2ab2036",
+      "name": "Respond to Webhook5"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"message\": \"Unknown ticket category\",\n  \"escalated\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -304,
+        784
+      ],
+      "id": "0999653b-f512-40f4-8cef-5db88a7560a2",
+      "name": "Respond to Webhook6"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6d9b5625-6cd4-4fbb-9ebf-e512abe758c3",
+  "meta": {
+    "instanceId": "e7748d0920956fe693c71e2ddfc8b72d01fe76b91206cbfd36dac3bf99028c83"
+  },
+  "nodeGroups": [],
+  "id": "4O8OpiXRd53IAYb0",
+  "tags": []
+}

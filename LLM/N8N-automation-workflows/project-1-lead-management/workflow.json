@@ -1,0 +1,442 @@
+{
+  "name": "01 - Lead Management Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-intake",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        -608,
+        -144
+      ],
+      "id": "9c0742ec-93be-4807-be2f-19078a4c0014",
+      "name": "Webhook",
+      "webhookId": "b1b2fa6f-dd73-483e-a03d-fa18281caa60"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d8390234-2b0c-4389-b4df-475059a75146",
+              "name": "name",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "f6c9868d-d41c-4e4a-965c-037f50a5307a",
+              "name": "email",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "4c0cbd60-770b-4e8e-b5a4-230c4f6edb48",
+              "name": "company",
+              "value": "={{ $json.body.company }}",
+              "type": "string"
+            },
+            {
+              "id": "b393b1da-b007-495b-9448-888c6d87b35a",
+              "name": "requirement",
+              "value": "={{ $json.body.requirement }}",
+              "type": "string"
+            },
+            {
+              "id": "09e33bb8-3395-40e9-b5b4-b1c69ea41d1f",
+              "name": "source",
+              "value": "={{ $json.body.source }}",
+              "type": "string"
+            },
+            {
+              "id": "be1b7fb0-abf2-4616-bed2-6065b370ba9a",
+              "name": "status",
+              "value": "received",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -432,
+        -144
+      ],
+      "id": "e43b3e35-b0f4-4b3e-be7c-7d10b0028c92",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n  {\n    success: true,\n    message: \"Customer already exists\",\n    email: $(\"Edit Fields\").item.json.email\n  }\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        512,
+        -288
+      ],
+      "id": "435a688c-6b66-4c24-b5c2-87f6df4fbb04",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f575c3c8-6e47-4c4d-870b-e33ef63fed86",
+              "leftValue": "={{ $('Edit Fields').item.json.email }}",
+              "rightValue": "={{ $('Edit Fields').item.json.email }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        32,
+        -112
+      ],
+      "id": "a212a631-c611-4a65-9f87-754e5921a9f5",
+      "name": "If",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://jsonplaceholder.typicode.com/posts",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    success: true,\n    duplicate: true,\n    message: \"Customer already exists\",\n    email: $(\"Edit Fields\").item.json.email\n  }\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        288,
+        -288
+      ],
+      "id": "fc80bd5c-5dd9-4b47-a18e-d9a654f7429f",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://jsonplaceholder.typicode.com/posts",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $('Edit Fields').item.json.name }}\",\n  \"email\": \"{{ $('Edit Fields').item.json.email }}\",\n  \"company\": \"{{ $('Edit Fields').item.json.company }}\",\n  \"requirement\": \"{{ $('Edit Fields').item.json.requirement }}\",\n \"source\": \"{{ $('Edit Fields').item.json.source }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        256,
+        16
+      ],
+      "id": "4864b4e9-bb7c-4591-a009-e43465a2cca9",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n  {\n    success: true,\n    duplicate: false,\n    message: \"Lead saved successfully\",\n    email: $(\"Edit Fields\").item.json.email\n  }\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        640,
+        16
+      ],
+      "id": "48753979-31fe-4c92-b73e-832b1d13c53f",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1uRLV-LlnZehjSJcgQPRCW4a6hQaGi5VI517sfRU5mGA",
+          "mode": "list",
+          "cachedResultName": "AI Lead Management",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uRLV-LlnZehjSJcgQPRCW4a6hQaGi5VI517sfRU5mGA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uRLV-LlnZehjSJcgQPRCW4a6hQaGi5VI517sfRU5mGA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Edit Fields').item.json.name }}",
+            "Email": "={{ $('Edit Fields').item.json.email }}",
+            "Requirement": "={{ $('Edit Fields').item.json.requirement }}",
+            "Company": "={{ $('Edit Fields').item.json.company }}",
+            "Source": "={{ $('Edit Fields').item.json.source }}",
+            "Status": "={{ $('Edit Fields').item.json.status }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Requirement",
+              "displayName": "Requirement",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        16
+      ],
+      "id": "2c7f0587-105c-4665-a9aa-97b8f33a0097",
+      "name": "Append row in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "n2zbCSTxSoMrGSZe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1uRLV-LlnZehjSJcgQPRCW4a6hQaGi5VI517sfRU5mGA",
+          "mode": "list",
+          "cachedResultName": "AI Lead Management",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uRLV-LlnZehjSJcgQPRCW4a6hQaGi5VI517sfRU5mGA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uRLV-LlnZehjSJcgQPRCW4a6hQaGi5VI517sfRU5mGA/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Email",
+              "lookupValue": "={{ $json.email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -240,
+        -144
+      ],
+      "id": "5304e763-38b7-4d50-9639-8aafd15a9911",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "n2zbCSTxSoMrGSZe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## phase 1\nLead intake, duplicate checking, and Google Sheets storage. Keep this as your completed project and don't change it unnecessarily."
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -960,
+        -416
+      ],
+      "typeVersion": 1,
+      "id": "68a21bc0-d4f4-4009-b6dc-9915abbcc95b",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2f4b00aa-0e71-4abc-8040-e1e3c9abfd2f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e7748d0920956fe693c71e2ddfc8b72d01fe76b91206cbfd36dac3bf99028c83"
+  },
+  "nodeGroups": [],
+  "id": "JXOgE0p76JPgGItR",
+  "tags": []
+}

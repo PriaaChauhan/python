@@ -719,4 +719,4 @@ client.messages.create(
 * [ ] Complete small Python Claude script
 * [ ] Test different prompts
 * [ ] Clean project + README
-* [ ] Push working code to GitHub
+* [ ] Push working code
