@@ -1,0 +1,1788 @@
+{
+  "name": "03 - AI Support Operations - RAG Integrated",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "932b87f6-729a-48f5-8d5d-2cc8523779d4",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        -784,
+        0
+      ],
+      "id": "fdab7754-6dd1-44b8-b173-483110587147",
+      "name": "Webhook",
+      "webhookId": "932b87f6-729a-48f5-8d5d-2cc8523779d4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fca0a31f-0bc0-4f34-82cc-e9634144f545",
+              "name": "ticketId",
+              "value": "={{ $json.body.ticketId }}",
+              "type": "string"
+            },
+            {
+              "id": "12582cc2-3bea-4c9e-805f-4e7bbd8db5bf",
+              "name": "customerEmail",
+              "value": "={{ $json.body.customerEmail }}",
+              "type": "string"
+            },
+            {
+              "id": "f1b04efd-534d-4b2a-a8bb-a21ef4a32e9f",
+              "name": "message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "48bdf242-a578-42a4-a8bd-be0b69a72e29",
+              "name": "source",
+              "value": "={{ $json.body.source }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -560,
+        0
+      ],
+      "id": "b9973a6d-6b06-4482-be1b-7c21c5a6a85f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"message\": \"Missing required ticket fields\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -96,
+        208
+      ],
+      "id": "d2dd67d4-07d6-427a-8196-e6de3f0964aa",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "899c6efc-13da-40d9-84ed-5e0092b9f4e5",
+              "leftValue": "={{ $json.body.ticketId }}",
+              "rightValue": "={{ $json.body.ticketId }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "a905de83-1028-4cdf-9d87-5b0093169189",
+              "leftValue": "={{ $json.body.customerEmail }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "f221568a-14a1-4102-9a28-508f75b4e745",
+              "leftValue": "={{ $json.body.message }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -336,
+        0
+      ],
+      "id": "7b14f7b2-f3ff-4c15-a9ee-113a8ddda0fc",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=\nClassify this customer support ticket.\n\nTicket ID: {{ $json.ticketId }}\nCustomer email: {{ $json.customerEmail }}\nCustomer message: {{ $json.message }}\n\nRelevant company knowledge retrieved from Qdrant:\n{{ $json.retrievedContext }}\n\nUse the company knowledge when relevant to understand the customer's issue.\nDo not invent company policies or claim an action has been performed when it has not.\n\nReturn the required structured fields:\ncategory, priority, sentiment, summary.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        160,
+        -256
+      ],
+      "id": "3bee74b3-c26e-4239-80f7-67d4d12e6405",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        48,
+        -48
+      ],
+      "id": "899ded1c-bc09-4f77-b22c-f3d3368efa79",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"category\": \"billing\",\n  \"priority\": \"high\",\n  \"sentiment\": \"frustrated\",\n  \"summary\": \"Customer reports a duplicate subscription charge\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        272,
+        -48
+      ],
+      "id": "1bca9ceb-dfcf-4813-9ed9-b7f701933886",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "billing",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3dde8a31-bec3-41f6-abd3-c3e69a998b52"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2b926e87-c40f-452c-a0cc-9352f5af624f",
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "technical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c2f5deb5-cbae-4ae3-9063-87b77929a44d",
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "account",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c30c0ab8-347a-42b5-b7ab-d7e80fefe3de",
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "other",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        -256
+      ],
+      "id": "224467e2-71c3-4573-820e-ff0c77e77cf6",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d8b45385-bb6e-4256-b154-d95acbf12a80",
+              "name": "assignedTeam",
+              "value": "billing support",
+              "type": "string"
+            },
+            {
+              "id": "41c629b9-7830-4cf6-8c9b-04e2f6c0027c",
+              "name": "handlingType",
+              "value": "billing_review",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        640,
+        -576
+      ],
+      "id": "906e3929-8e38-475a-aced-a5d79575d1ee",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d8b45385-bb6e-4256-b154-d95acbf12a80",
+              "name": "assignedTeam",
+              "value": " technical support",
+              "type": "string"
+            },
+            {
+              "id": "41c629b9-7830-4cf6-8c9b-04e2f6c0027c",
+              "name": "handlingType",
+              "value": "technical_review",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        768,
+        -336
+      ],
+      "id": "0483cec1-46f6-4db4-a522-fc302e4dd3ed",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d8b45385-bb6e-4256-b154-d95acbf12a80",
+              "name": "assignedTeam",
+              "value": "account support",
+              "type": "string"
+            },
+            {
+              "id": "41c629b9-7830-4cf6-8c9b-04e2f6c0027c",
+              "name": "handlingType",
+              "value": "account_review",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        768,
+        -96
+      ],
+      "id": "6c06dbc5-26ec-4fb4-aec9-d498c1c6b326",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d8b45385-bb6e-4256-b154-d95acbf12a80",
+              "name": "assignedTeam",
+              "value": "general support",
+              "type": "string"
+            },
+            {
+              "id": "41c629b9-7830-4cf6-8c9b-04e2f6c0027c",
+              "name": "handlingType",
+              "value": "general_review",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        640,
+        176
+      ],
+      "id": "2db07e06-7230-4828-92c4-565c38d1daf7",
+      "name": "Edit Fields7"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2f63fdd8-f0bd-4a0d-8509-444c3a6cfb11",
+              "leftValue": "={{ $('Switch').item.json.output.priority }}",
+              "rightValue": "high",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1088,
+        -576
+      ],
+      "id": "a809dfc1-b92e-41ac-9a62-8d1d9f579ff8",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2f63fdd8-f0bd-4a0d-8509-444c3a6cfb11",
+              "leftValue": "={{ $('Switch').item.json.output.priority }}",
+              "rightValue": "high",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1072,
+        -336
+      ],
+      "id": "2cc687cf-abe5-4c8a-84a9-f8847221f8df",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2f63fdd8-f0bd-4a0d-8509-444c3a6cfb11",
+              "leftValue": "={{ $('Switch').item.json.output.priority }}",
+              "rightValue": "high",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1072,
+        -96
+      ],
+      "id": "03428a4e-5876-4b5f-a255-8891cec30abc",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2f63fdd8-f0bd-4a0d-8509-444c3a6cfb11",
+              "leftValue": "={{ $('Switch').item.json.output.priority }}",
+              "rightValue": "high",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1088,
+        176
+      ],
+      "id": "db38905a-816f-4a7d-b8d7-624700276301",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "LaXVLR3BPJ7G4ZCy",
+          "mode": "list",
+          "cachedResultName": "support_tickets_v2",
+          "cachedResultUrl": "/projects/9ZdsGA1OBCQdyLfO/datatables/LaXVLR3BPJ7G4ZCy"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ticketId": "={{ $('Prepare Ticket for Duplicate Check').first().json.ticketId }}",
+            "customerEmail": "={{ $('Prepare Ticket for Duplicate Check').first().json.customerEmail }}",
+            "message": "={{ $('Prepare Ticket for Duplicate Check').first().json.message }}",
+            "category": "={{ $('Prepare Ticket for Duplicate Check').first().json.category }}",
+            "priority": "={{$('Prepare Ticket for Duplicate Check').first().json.priority }}",
+            "sentiment": "={{$('Prepare Ticket for Duplicate Check').first().json.sentiment }}",
+            "assignedTeam": "={{ $('Prepare Ticket for Duplicate Check').first().json.assignedTeam }}",
+            "handlingType": "={{ $('Prepare Ticket for Duplicate Check').first().json.handlingType }}",
+            "ticketStatus": "={{$('Prepare Ticket for Duplicate Check').first().json.ticketStatus }}",
+            "urgency": "={{$('Prepare Ticket for Duplicate Check').first().json.urgency }}",
+            "summary": "={{ $('Prepare Ticket for Duplicate Check').first().json.summary }}",
+            "approvalStatus": "={{ $('Prepare Ticket for Duplicate Check').first().json.approvalStatus }}",
+            "approvedBy": "={{ $('Prepare Ticket for Duplicate Check').first().json.approvedBy }}",
+            "approvalNote": "={{ $('Prepare Ticket for Duplicate Check').first().json.approvalNote }}",
+            "approvedAt": "={{ $('Prepare Ticket for Duplicate Check').first().json.approvedAt }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ticketId",
+              "displayName": "ticketId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "customerEmail",
+              "displayName": "customerEmail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sentiment",
+              "displayName": "sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "assignedTeam",
+              "displayName": "assignedTeam",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "handlingType",
+              "displayName": "handlingType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ticketStatus",
+              "displayName": "ticketStatus",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "approvalStatus",
+              "displayName": "approvalStatus",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "approvedBy",
+              "displayName": "approvedBy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "approvalNote",
+              "displayName": "approvalNote",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "approvedAt",
+              "displayName": "approvedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "optimizeBulk": true
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2704,
+        -240
+      ],
+      "id": "d9f9af96-5cde-47e5-a18a-2ff98e099c49",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const ticketId = String($json.ticketId ?? \"\").trim();\nconst customerEmail = String($json.customerEmail ?? \"\").trim().toLowerCase();\nconst message = String($json.message ?? \"\").trim();\nconst source = String($json.source ?? \"webhook\").trim();\n\nif (!ticketId || !customerEmail || !message) {\n  throw new Error(\"Required ticket fields are missing\");\n}\n\nif (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(customerEmail)) {\n  throw new Error(\"Invalid customer email\");\n}\n\nreturn {\n  json: {\n    ticketId,\n    customerEmail,\n    message,\n    source,\n    receivedAt: new Date().toISOString(),\n    status: \"received\"\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        -656
+      ],
+      "id": "feaec9d9-7beb-40c3-974e-d36350300fd8",
+      "name": "Code",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "=\n{{\n  JSON.stringify((() => {\n    const nodes = [\n      'High Priority', 'High Priority1',\n      'High Priority2', 'High Priority3',\n      'Normal Priority', 'Normal Priority1',\n      'Normal Priority2', 'Normal Priority3'\n    ];\n\n    const current = nodes.find(name => {\n      try {\n        return $(name).isExecuted;\n      } catch (e) {\n        return false;\n      }\n    });\n\n    const routed = current ? $(current).item.json : {};\n\n    return {\n      success: true,\n      message: \"Ticket classified, routed, and saved successfully\",\n      data: {\n        ticketId: $('Code').item.json.ticketId,\n        customerEmail: $('Code').item.json.customerEmail,\n        category: $('AI Agent').item.json.output.category,\n        priority: $('AI Agent').item.json.output.priority,\n        sentiment: $('AI Agent').item.json.output.sentiment,\n        summary: $('AI Agent').item.json.output.summary,\n        assignedTeam: routed.assignedTeam,\n        handlingType: routed.handlingType,\n        ticketStatus: routed.ticketStatus,\n        urgency: routed.urgency\n      }\n    };\n  })())\n}}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2928,
+        -240
+      ],
+      "id": "9f08cbaa-39fd-4f42-beca-0ba084dc722b",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "LaXVLR3BPJ7G4ZCy",
+          "mode": "list",
+          "cachedResultName": "support_tickets_v2",
+          "cachedResultUrl": "/projects/9ZdsGA1OBCQdyLfO/datatables/LaXVLR3BPJ7G4ZCy"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "ticketId",
+              "keyValue": "={{ $('Prepare Ticket for Duplicate Check').first().json.ticketId }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2208,
+        -432
+      ],
+      "id": "9096c41b-e893-4bfe-9da6-27da23aa9023",
+      "name": "Get row(s)",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e4b18a3b-2d75-492b-8388-c856d85a95f1",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2432,
+        -432
+      ],
+      "id": "41b56978-f707-4a30-93c8-71773c08eeda",
+      "name": "If5"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n  {\n    success: false,\n    duplicate: true,\n    message: \"A ticket with this ticketId already exists\",\n    ticketId: $('Code').item.json.ticketId\n  }\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2800,
+        -608
+      ],
+      "id": "74df0842-3f02-4028-8d2a-b1f77fa435b5",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2711c5f9-9110-4fdf-adea-d58c3327c8cd",
+              "name": "ticketStatus",
+              "value": "=pending_approval",
+              "type": "string"
+            },
+            {
+              "id": "55d21c35-9b77-4306-8688-eff88323cf85",
+              "name": "urgency",
+              "value": "urgent",
+              "type": "string"
+            },
+            {
+              "id": "71f2ce05-1e52-491c-9ca1-7f197162a034",
+              "name": "approvalStatus",
+              "value": "=pending_approval",
+              "type": "string"
+            },
+            {
+              "id": "1d22838b-04bb-4aca-b199-7269c72dd564",
+              "name": "approvedBy",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "a54298cd-02f9-4a7f-b898-8c2dce6533e0",
+              "name": "approvalNote",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "30d9f6bf-86d1-4145-8f01-0db624d47aab",
+              "name": "approvedAt",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1360,
+        -928
+      ],
+      "id": "88646ac7-1c31-4bb9-8b78-287db50a048a",
+      "name": "High Priority"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2711c5f9-9110-4fdf-adea-d58c3327c8cd",
+              "name": "ticketStatus",
+              "value": "=pending_approval",
+              "type": "string"
+            },
+            {
+              "id": "55d21c35-9b77-4306-8688-eff88323cf85",
+              "name": "urgency",
+              "value": "urgent",
+              "type": "string"
+            },
+            {
+              "id": "219a8d82-3035-4274-ab90-01f02dfc959d",
+              "name": "approvalStatus",
+              "value": "=pending_approval",
+              "type": "string"
+            },
+            {
+              "id": "eba3f672-beb3-4cc3-9836-18c61a8f79c3",
+              "name": "approvedBy",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "637ef683-da30-4c53-a3b3-5c3d7979899c",
+              "name": "approvalNote",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "226c9774-f2a7-4120-bad7-1bf75061dc0d",
+              "name": "approvedAt",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1392,
+        -544
+      ],
+      "id": "723530f0-5bda-45a7-86e0-a5357fabb955",
+      "name": "High Priority1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2711c5f9-9110-4fdf-adea-d58c3327c8cd",
+              "name": "ticketStatus",
+              "value": "=pending_approval",
+              "type": "string"
+            },
+            {
+              "id": "55d21c35-9b77-4306-8688-eff88323cf85",
+              "name": "urgency",
+              "value": "urgent",
+              "type": "string"
+            },
+            {
+              "id": "d962b965-e953-48cb-8071-8473e5459577",
+              "name": "approvalStatus",
+              "value": "=pending_approval",
+              "type": "string"
+            },
+            {
+              "id": "74f7ee07-5cae-40cf-b95b-34f6dc53ffc3",
+              "name": "approvedBy",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "1580536c-4a08-4352-999d-0dee5a498cf8",
+              "name": "approvalNote",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "bea6cb2c-60b5-4482-95d5-5b23fbdbd131",
+              "name": "approvedAt",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1424,
+        -128
+      ],
+      "id": "84164838-1430-4c63-9dcd-823aa9bbaf84",
+      "name": "High Priority2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2711c5f9-9110-4fdf-adea-d58c3327c8cd",
+              "name": "ticketStatus",
+              "value": "=pending_approval",
+              "type": "string"
+            },
+            {
+              "id": "55d21c35-9b77-4306-8688-eff88323cf85",
+              "name": "urgency",
+              "value": "urgent",
+              "type": "string"
+            },
+            {
+              "id": "e25d1622-aae9-44e7-b208-0149f34e3dda",
+              "name": "approvalStatus",
+              "value": "=pending_approval",
+              "type": "string"
+            },
+            {
+              "id": "e1948bbd-0c24-42d8-b161-b73627a805b0",
+              "name": "approvedBy",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "0115c104-bf2d-4c88-9c7d-f05e838539c5",
+              "name": "approvalNote",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "1838d2a7-d0d0-4623-8759-f0c1e1cb254a",
+              "name": "approvedAt",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1440,
+        240
+      ],
+      "id": "9636eb99-f97b-4b73-9d83-c0b2bfd9dc8f",
+      "name": "High Priority3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ff3e8739-ec3e-46b0-9f17-ae88e396f48c",
+              "name": "ticketStatus",
+              "value": "queued",
+              "type": "string"
+            },
+            {
+              "id": "a2e12b59-5739-4222-b525-498cd940cbc7",
+              "name": "urgency",
+              "value": "normal",
+              "type": "string"
+            },
+            {
+              "id": "c89da451-81f3-46ec-ae8c-21d2f0421aaa",
+              "name": "approvalStatus",
+              "value": "not_required",
+              "type": "string"
+            },
+            {
+              "id": "4bd754c0-9fe7-41db-9b0a-761cbabf8a99",
+              "name": "approvedBy",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "d8a5c61a-f038-4cbc-8b34-16a7e31b976f",
+              "name": "approvalNote",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "2fa5ad72-d8f7-4643-9889-16085fe1a663",
+              "name": "approvedAt",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1376,
+        -720
+      ],
+      "id": "66e8be6a-2a92-467c-aac5-65778897b106",
+      "name": "Normal Priority"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ff3e8739-ec3e-46b0-9f17-ae88e396f48c",
+              "name": "ticketStatus",
+              "value": "queued",
+              "type": "string"
+            },
+            {
+              "id": "a2e12b59-5739-4222-b525-498cd940cbc7",
+              "name": "urgency",
+              "value": "normal",
+              "type": "string"
+            },
+            {
+              "id": "b76429ee-6617-4ac5-bdae-2bc1f81a8b79",
+              "name": "approvalStatus",
+              "value": "not_required",
+              "type": "string"
+            },
+            {
+              "id": "c92a5ef1-1cbe-4405-83e3-4ad9f3308ee5",
+              "name": "approvedBy",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "74677073-ea67-4586-bac9-e75442940c9e",
+              "name": "approvalNote",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "ff2475cd-a5ad-403d-b2db-65c4ea6408a4",
+              "name": "approvedAt",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1408,
+        -320
+      ],
+      "id": "2ba57fcc-f0a2-4e50-885c-9e1048bfb253",
+      "name": "Normal Priority1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ff3e8739-ec3e-46b0-9f17-ae88e396f48c",
+              "name": "ticketStatus",
+              "value": "queued",
+              "type": "string"
+            },
+            {
+              "id": "a2e12b59-5739-4222-b525-498cd940cbc7",
+              "name": "urgency",
+              "value": "normal",
+              "type": "string"
+            },
+            {
+              "id": "2e212fc4-e279-4f16-a269-0d1e525cf45d",
+              "name": "approvalStatus",
+              "value": "not_required",
+              "type": "string"
+            },
+            {
+              "id": "a53ba71f-6cdc-4317-b556-b36c2293aff5",
+              "name": "approvedBy",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "bb0f2156-2191-44b3-8427-16dcefd92577",
+              "name": "approvalNote",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "5ba824d5-789b-4552-ba86-3ea8712eaf4c",
+              "name": "approvedAt",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1408,
+        64
+      ],
+      "id": "829ca674-f1b2-494e-a345-f1d4a22b897b",
+      "name": "Normal Priority2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ff3e8739-ec3e-46b0-9f17-ae88e396f48c",
+              "name": "ticketStatus",
+              "value": "queued",
+              "type": "string"
+            },
+            {
+              "id": "a2e12b59-5739-4222-b525-498cd940cbc7",
+              "name": "urgency",
+              "value": "normal",
+              "type": "string"
+            },
+            {
+              "id": "b8790524-240d-4cc0-860a-8772b858cc8b",
+              "name": "approvalStatus",
+              "value": "not_required",
+              "type": "string"
+            },
+            {
+              "id": "1a537145-a730-4b4a-8416-2e18c317aa7c",
+              "name": "approvedBy",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "530f75c3-b4d6-4b5b-87ce-dd4e1a789ecf",
+              "name": "approvalNote",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "d3379fc0-84e6-4857-ae3b-2924f9d732dd",
+              "name": "approvedAt",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1472,
+        448
+      ],
+      "id": "cfd8de03-271d-482b-ae5d-6931b7253247",
+      "name": "Normal Priority3"
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "support_knowledge_base2",
+          "mode": "list",
+          "cachedResultName": "support_knowledge_base2"
+        },
+        "prompt": "={{ $json.message }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        -144,
+        -784
+      ],
+      "id": "844ff923-a997-47b7-9c38-05b960daf9a2",
+      "name": "Qdrant Vector Store",
+      "credentials": {
+        "qdrantApi": {
+          "id": "eyNgwTo2tJqaRhAn",
+          "name": "Qdrant account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst ticket = $('Code').first().json;\n\nconst documents = $input.all()\n  .map(item => {\n    const result = item.json;\n    const document = result.document ?? result;\n\n    return {\n      score: result.score ?? null,\n      content: document.pageContent ?? document.content ?? ''\n    };\n  })\n  .filter(doc => doc.content.trim() !== '');\n\nconst retrievedContext = documents\n  .map((doc, i) =>\n    `Document ${i + 1}:\\n${doc.content}`\n  )\n  .join('\\n\\n---\\n\\n');\n\nreturn [{\n  json: {\n    ...ticket,\n    retrievedContext,\n    documentsFound: documents.length\n  }\n}];\n "
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        -784
+      ],
+      "id": "e571aae4-5eb2-4879-8fc2-d0849ef66f56",
+      "name": "Code in JavaScript",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        -576
+      ],
+      "id": "032f14a6-e0bf-4580-80b1-a2c278b40f6d",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "x8h5GC2Q615DMQT8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst branch = $input.first().json;\nconst ticket = $('Code').first().json;\n\nconst output = branch.output ?? branch;\n\nreturn [{\n  json: {\n    ticketId: ticket.ticketId,\n    customerEmail: ticket.customerEmail,\n    message: ticket.message,\n\n    category: output.category,\n    priority: output.priority,\n    sentiment: output.sentiment,\n    summary: output.summary,\n\n    assignedTeam: branch.assignedTeam,\n    handlingType: branch.handlingType,\n    ticketStatus: branch.ticketStatus,\n    urgency: branch.urgency,\n\n    approvalStatus: branch.approvalStatus,\n    approvedBy: branch.approvedBy ?? '',\n    approvalNote: branch.approvalNote ?? '',\n    approvedAt: branch.approvedAt ?? ''\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        -416
+      ],
+      "id": "510b9d08-f58e-417b-8d67-22611570d736",
+      "name": "Prepare Ticket for Duplicate Check"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields7": {
+      "main": [
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "High Priority",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normal Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "High Priority1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normal Priority1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "High Priority2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normal Priority2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "High Priority3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normal Priority3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert row": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook2": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "If5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If5": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High Priority": {
+      "main": [
+        [
+          {
+            "node": "Prepare Ticket for Duplicate Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High Priority1": {
+      "main": [
+        [
+          {
+            "node": "Prepare Ticket for Duplicate Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High Priority2": {
+      "main": [
+        [
+          {
+            "node": "Prepare Ticket for Duplicate Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High Priority3": {
+      "main": [
+        [
+          {
+            "node": "Prepare Ticket for Duplicate Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normal Priority": {
+      "main": [
+        [
+          {
+            "node": "Prepare Ticket for Duplicate Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normal Priority1": {
+      "main": [
+        [
+          {
+            "node": "Prepare Ticket for Duplicate Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normal Priority2": {
+      "main": [
+        [
+          {
+            "node": "Prepare Ticket for Duplicate Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normal Priority3": {
+      "main": [
+        [
+          {
+            "node": "Prepare Ticket for Duplicate Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Ticket for Duplicate Check": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "19496c69-b2f5-4ca2-8183-e5ef4caacd27",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e7748d0920956fe693c71e2ddfc8b72d01fe76b91206cbfd36dac3bf99028c83"
+  },
+  "nodeGroups": [],
+  "id": "uDBLZDGu5n9v0Jw4",
+  "tags": []
+}
